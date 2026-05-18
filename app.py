@@ -227,6 +227,7 @@ if uploaded_file is not None:
                 sns.barplot(x=user_counts.values, y=user_counts.index, ax=ax, palette="viridis")
                 ax.set_xlabel("Number of Messages")
                 st.pyplot(fig)
+                st.info("💡 **Insight:** This bar chart highlights the most active contributors in the chat based on the total number of messages they have sent up to top 10 users.")
 
             with col2:
                 st.subheader("Message Distribution")
@@ -234,10 +235,12 @@ if uploaded_file is not None:
                 ax2.pie(user_counts.values, labels=user_counts.index, autopct='%1.1f%%', startangle=90)
                 ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
                 st.pyplot(fig2)
+                st.info("💡 **Insight:** This pie chart breaks down the percentage share of messages sent by these top contributors relative to each other.")
             
             st.subheader("Daily Message Trend")
             daily_counts = df.groupby(df['DateTime'].dt.date).size()
             st.line_chart(daily_counts)
+            st.info("💡 **Insight:** This line chart visualizes the daily message trend throughout the whole timeline of the group chat. It allows you to easily observe the overall activity lifespan, spotting periods of high engagement, quiet phases, or sudden spikes in conversation driven by specific events or discussions.")
 
         # === CHOICE 2: CONTENT ANALYSIS ===
         # === CHOICE 2: CONTENT ANALYSIS ===
@@ -254,6 +257,7 @@ if uploaded_file is not None:
             ax_wc.imshow(wordcloud, interpolation='bilinear')
             ax_wc.axis("off")
             st.pyplot(fig_wc)
+            st.info("💡 **How to read this:** The larger and bolder a word appears in the cloud, the more frequently it was used in the group chat. Common filler words (like 'the', 'and', 'is') have been automatically removed.")
 
             # 2. Top 5 Words Analysis Table
             st.markdown("---")
@@ -335,6 +339,7 @@ if uploaded_file is not None:
                 # Identify Peak Hour
                 peak_hour = hourly_counts.idxmax()
                 st.metric(label="Peak Activity Hour", value=f"{peak_hour}:00")
+                st.info("💡 **Insight:** This chart shows the total volume of messages sent during each hour of the day (in 24-hour format). It helps identify the group's general active hours and quiet hours.")
 
             with col_t2:
                 st.subheader("Activity by Day of Week")
@@ -344,6 +349,7 @@ if uploaded_file is not None:
                 sns.barplot(x=day_counts.index, y=day_counts.values, ax=ax_day, palette="Blues_d")
                 plt.xticks(rotation=45)
                 st.pyplot(fig_day)
+                st.info("💡 **Insight:** This chart displays the total number of messages sent on each specific day of the week, revealing which days the group is most communicative.")
 
             # Heatmap (Hour vs Day)
             st.subheader("Activity Heatmap (Hour vs. Day)")
