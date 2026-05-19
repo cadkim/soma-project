@@ -37,25 +37,29 @@ st.markdown("### WhatsApp Group Chat Analysis System")
 def process_chat_data(uploaded_file):
     """
     Universal parser for both Android and iPhone formats (12-hour & 24-hour).
+    Handles noisy data tags and alternative time punctuation.
     """
     # 1. Read and Decode
     stringio = uploaded_file.getvalue().decode("utf-8-sig")
     data = stringio.splitlines()
 
-    # 2. Define Universal Patterns
+    # 2. Define Universal Patterns (MODIFIED: added [.:] to support time with periods)
     patterns = [
         # Pattern A: iPhone (Brackets)
-        re.compile(r'^\[(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}),\s(\d{1,2}:\d{2}(?::\d{2})?)(?:\s?([a-zA-Z]{2}))?\]\s(.*?):\s?(.*)'),
+        re.compile(r'^\[(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}),\s(\d{1,2}[.:]\d{2}(?:[.:]\d{2})?)(?:\s?([a-zA-Z]{2}))?\]\s(.*?):\s?(.*)'),
 
         # Pattern B: Android (No Brackets)
-        re.compile(r'^(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}),\s(\d{1,2}:\d{2}(?::\d{2})?)(?:\s?([a-zA-Z]{2}))?\s-\s(.*?):\s?(.*)')
+        re.compile(r'^(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}),\s(\d{1,2}[.:]\d{2}(?:[.:]\d{2})?)(?:\s?([a-zA-Z]{2}))?\s-\s(.*?):\s?(.*)')
     ]
 
     # 3. Detect which pattern works
     chosen_pattern = None
-    for line in data[:50]:
-        # CLEAN: Remove all invisible BiDi characters and narrow spaces that break iOS parsing
+    for line in data[:100]: # Increased sample size to bypass noisy headers
+        # CLEAN: Remove all invisible BiDi characters
         clean_line = re.sub(r'[\u200e\u200f\u202a-\u202e\u2066-\u2069\u202f]', '', line).strip()
+        # CLEAN NEW: Strip out the artifacts completely
+        clean_line = re.sub(r'\\s*', '', clean_line).strip()
+        
         for p in patterns:
             if p.match(clean_line):
                 chosen_pattern = p
@@ -75,6 +79,13 @@ def process_chat_data(uploaded_file):
         # Strip invisible formatting characters dynamically
         clean_line = re.sub(r'[\u200e\u200f\u202a-\u202e\u2066-\u2069\u202f]', '', line).strip()
         
+        # Strip out the artifacts so they don't break multilines
+        clean_line = re.sub(r'\\s*', '', clean_line).strip()
+        
+        # Skip completely empty lines
+        if not clean_line:
+            continue
+
         match = chosen_pattern.match(clean_line)
         if match:
             # Save previous message
@@ -83,15 +94,16 @@ def process_chat_data(uploaded_file):
             
             date, time, ampm, sender, message = match.groups()
             
-            # Format time explicitly to help pandas calculate 12h/24h correctly
-            clean_time = time.strip()
+            # Format time explicitly: Replace periods with colons for Pandas compatibility
+            clean_time = time.strip().replace('.', ':')
+            
             if ampm:  
                 clean_time = f"{clean_time} {ampm.strip().upper()}"
                 
             current_message = [date, clean_time, sender, message]
         else:
             # Append multiline messages
-            if current_message and clean_line:
+            if current_message:
                 current_message[3] += f" {clean_line}"
 
     if current_message:
@@ -104,7 +116,7 @@ def process_chat_data(uploaded_file):
         return None
 
     # ---------------------------------------------------------
-    # NEW FIX: EXPANDED SYSTEM FILTERS FOR IPHONE MEDIA
+    # SYSTEM FILTERS FOR IPHONE MEDIA & NOTIFICATIONS
     # ---------------------------------------------------------
     system_filters = [
         r"Media omitted",
@@ -120,7 +132,9 @@ def process_chat_data(uploaded_file):
         r"added you",
         r"added ",
         r"changed the subject",
-        r"You're now an admin"
+        r"changed their phone number",
+        r"You're now an admin",
+        r"This message was deleted\."
     ]
     
     # case=False ensures it catches "Contact card omitted" or "contact card omitted" equally
@@ -134,21 +148,20 @@ def process_chat_data(uploaded_file):
         # SMART DATE PARSING: Check if the first number in the date is > 12
         first_date_num = df['Date'].str.extract(r'^(\d{1,2})')[0].astype(float)
         if first_date_num.max() > 12:
-            # The first number goes above 12, so the format MUST be DD/MM/YYYY
+            # Format MUST be DD/MM/YYYY
             df['DateTime'] = pd.to_datetime(df['DateTimeStr'], dayfirst=True, errors='coerce')
         else:
-            # The first number maxes out at 12, so the format MUST be MM/DD/YYYY
+            # Format MUST be MM/DD/YYYY
             df['DateTime'] = pd.to_datetime(df['DateTimeStr'], dayfirst=False, errors='coerce')
         
         # Drop unparseable rows safely
-        df = df.dropna(subset=['DateTime'])
+        df = df.dropna(subset=['DateTime']).copy()
         
         df['Hour'] = df['DateTime'].dt.hour
         df['DayOfWeek'] = df['DateTime'].dt.day_name()
         df['Message_Length'] = df['Message'].apply(lambda x: len(str(x).split()))
         
         # --- SENTIMENT ANALYSIS ---
-        from nltk.sentiment.vader import SentimentIntensityAnalyzer
         sid = SentimentIntensityAnalyzer()
         df['Sentiment_Score'] = df['Message'].apply(lambda x: sid.polarity_scores(str(x))['compound'])
         df['Sentiment_Category'] = df['Sentiment_Score'].apply(lambda x: 'Positive' if x > 0.05 else ('Negative' if x < -0.05 else 'Neutral'))
