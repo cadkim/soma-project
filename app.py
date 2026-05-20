@@ -16,7 +16,62 @@ try:
     nltk.data.find('sentiment/vader_lexicon.zip')
 except LookupError:
     nltk.download('vader_lexicon')
-
+# --- CUSTOM STOPWORDS CONFIGURATION ---
+# Combine default English stopwords with the custom Malay stopwords
+malay_stopwords_list = [
+    "nak", "buat", "mai", "kat", "yg", "p", "dh", "nk", "dgn", "depa", "pi", "lagi", "mcm", "dia", "kau", "kan", "je", 
+    "kut", "tu", "pun", "pon", "X", "x", "tok", "Hg", "hg", "kena", "ya", "la", "ni", "ja", "aku", "tak", "dah", "dak", "dia",
+    "abdul", "abdullah", "acara", "ada", "adalah", "ahmad", "air", "akan", "akhbar", "akhir",
+    "aktiviti", "alam", "amat", "amerika", "anak", "anggota", "antara", "antarabangsa", "apa", "apabila",
+    "april", "as", "asas", "asean", "asia", "asing", "atas", "atau", "australia", "awal",
+    "awam", "bagaimanapun", "bagi", "bahagian", "bahan", "baharu", "bahawa", "baik", "bandar", "bank",
+    "banyak", "barangan", "baru", "baru-baru", "bawah", "beberapa", "bekas", "beliau", "belum", "berada",
+    "berakhir", "berbanding", "berdasarkan", "berharap", "berikutan", "berjaya", "berjumlah", "berkaitan", "berkata", "berkenaan",
+    "berlaku", "bermula", "bernama", "bernilai", "bersama", "berubah", "besar", "bhd", "bidang", "bilion",
+    "bn", "boleh", "bukan", "bulan", "bursa", "cadangan", "china", "dagangan", "dalam", "dan",
+    "dana", "dapat", "dari", "daripada", "dasar", "datang", "datuk", "demikian", "dengan", "depan",
+    "derivatives", "dewan", "di", "diadakan", "dibuka", "dicatatkan", "dijangka", "diniagakan", "dis", "disember",
+    "ditutup", "dolar", "dr", "dua", "dunia", "ekonomi", "eksekutif", "eksport", "empat", "enam",
+    "faedah", "feb", "global", "hadapan", "hanya", "harga", "hari", "hasil", "hingga", "hubungan",
+    "ia", "iaitu", "ialah", "indeks", "india", "indonesia", "industri", "ini", "islam", "isnin",
+    "isu", "itu", "jabatan", "jalan", "jan", "jawatan", "jawatankuasa", "jepun", "jika", "jualan",
+    "juga", "julai", "jumaat", "jumlah", "jun", "juta", "kadar", "kalangan", "kali", "kami",
+    "kata", "katanya", "kaunter", "kawasan", "ke", "keadaan", "kecil", "kedua", "kedua-dua", "kedudukan",
+    "kekal", "kementerian", "kemudahan", "kenaikan", "kenyataan", "kepada", "kepentingan", "keputusan", "kerajaan", "kerana",
+    "kereta", "kerja", "kerjasama", "kes", "keselamatan", "keseluruhan", "kesihatan", "ketika", "ketua", "keuntungan",
+    "kewangan", "khamis", "kini", "kira-kira", "kita", "klci", "klibor", "komposit", "kontrak", "kos",
+    "kuala", "kuasa", "kukuh", "kumpulan", "lagi", "lain", "langkah", "laporan", "lebih", "lepas",
+    "lima", "lot", "luar", "lumpur", "mac", "mahkamah", "mahu", "majlis", "makanan", "maklumat",
+    "malam", "malaysia", "mana", "manakala", "masa", "masalah", "masih", "masing-masing", "masyarakat", "mata",
+    "media", "mei", "melalui", "melihat", "memandangkan", "memastikan", "membantu", "membawa", "memberi", "memberikan",
+    "membolehkan", "membuat", "mempunyai", "menambah", "menarik", "menawarkan", "mencapai", "mencatatkan", "mendapat", "mendapatkan",
+    "menerima", "menerusi", "mengadakan", "mengambil", "mengenai", "menggalakkan", "menggunakan", "mengikut", "mengumumkan", "mengurangkan",
+    "meningkat", "meningkatkan", "menjadi", "menjelang", "menokok", "menteri", "menunjukkan", "menurut", "menyaksikan", "menyediakan",
+    "mereka", "merosot", "merupakan", "mesyuarat", "minat", "minggu", "minyak", "modal", "mohd", "mudah",
+    "mungkin", "naik", "najib", "nasional", "negara", "negara-negara", "negeri", "niaga", "nilai", "nov",
+    "ogos", "okt", "oleh", "operasi", "orang", "pada", "pagi", "paling", "pameran", "papan",
+    "para", "paras", "parlimen", "parti", "pasaran", "pasukan", "pegawai", "pejabat", "pekerja", "pelabur",
+    "pelaburan", "pelancongan", "pelanggan", "pelbagai", "peluang", "pembangunan", "pemberita", "pembinaan", "pemimpin", "pendapatan",
+    "pendidikan", "penduduk", "penerbangan", "pengarah", "pengeluaran", "pengerusi", "pengguna", "pengurusan", "peniaga", "peningkatan",
+    "penting", "peratus", "perdagangan", "perdana", "peringkat", "perjanjian", "perkara", "perkhidmatan", "perladangan", "perlu",
+    "permintaan", "perniagaan", "persekutuan", "persidangan", "pertama", "pertubuhan", "pertumbuhan", "perusahaan", "peserta", "petang",
+    "pihak", "pilihan", "pinjaman", "polis", "politik", "presiden", "prestasi", "produk", "program", "projek",
+    "proses", "proton", "pukul", "pula", "pusat", "rabu", "rakan", "rakyat", "ramai", "rantau",
+    "raya", "rendah", "ringgit", "rumah", "sabah", "sahaja", "saham", "sama", "sarawak", "satu",
+    "sawit", "saya", "sdn", "sebagai", "sebahagian", "sebanyak", "sebarang", "sebelum", "sebelumnya", "sebuah",
+    "secara", "sedang", "segi", "sehingga", "sejak", "sekarang", "sektor", "sekuriti", "selain", "selama",
+    "selasa", "selatan", "selepas", "seluruh", "semakin", "semalam", "semasa", "sementara", "semua", "semula",
+    "sen", "sendiri", "seorang", "sepanjang", "seperti", "sept", "september", "serantau", "seri", "serta",
+    "sesi", "setiap", "setiausaha", "sidang", "singapura", "sini", "sistem", "sokongan", "sri", "sudah",
+    "sukan", "suku", "sumber", "supaya", "susut", "syarikat", "syed", "tahap", "tahun", "tan",
+    "tanah", "tanpa", "tawaran", "teknologi", "telah", "tempat", "tempatan", "tempoh", "tenaga", "tengah",
+    "tentang", "terbaik", "terbang", "terbesar", "terbuka", "terdapat", "terhadap", "termasuk", "tersebut", "terus",
+    "tetapi", "thailand", "tiada", "tidak", "tiga", "timbalan", "timur", "tindakan", "tinggi", "tun",
+    "tunai", "turun", "turut", "umno", "unit", "untuk", "untung", "urus", "usaha", "utama",
+    "walaupun", "wang", "wanita", "wilayah", "yang"
+]
+custom_stopwords = STOPWORDS.union(set(malay_stopwords_list))
+# ----------------------------------------------
 
 # --- Page Configuration ---
 st.set_page_config(page_title="SOMA - Social Media Analyzer", layout="wide")
@@ -149,7 +204,7 @@ def process_chat_data(uploaded_file):
         first_date_num = df['Date'].str.extract(r'^(\d{1,2})')[0].astype(float)
         if first_date_num.max() > 12:
             # Format MUST be DD/MM/YYYY
-            df['DateTime'] = pd.to_datetime(df['DateTimeStr'], dayfirst=True, errors='coerce')
+            df['DateTime'] = pd.to_datetime(df['DateTimeStr'], dayfirst=True, errors='coerce', format='mixed')
         else:
             # Format MUST be MM/DD/YYYY
             df['DateTime'] = pd.to_datetime(df['DateTimeStr'], dayfirst=False, errors='coerce')
@@ -237,7 +292,7 @@ if uploaded_file is not None:
                 st.subheader("Message Count by User")
                 user_counts = df['Sender'].value_counts().head(10)
                 fig, ax = plt.subplots()
-                sns.barplot(x=user_counts.values, y=user_counts.index, ax=ax, palette="viridis")
+                sns.barplot(x=user_counts.values, y=user_counts.index, ax=ax, hue=user_counts.index, palette="viridis", legend=False)
                 ax.set_xlabel("Number of Messages")
                 st.pyplot(fig)
                 st.info("💡 **Insight:** This bar chart highlights the most active contributors in the chat based on the total number of messages they have sent up to top 10 users.")
@@ -264,13 +319,15 @@ if uploaded_file is not None:
             # 1. Word Cloud
             st.subheader("Most Common Words (Word Cloud)")
             text_data = " ".join(msg for msg in df['Message'])
-            wordcloud = WordCloud(width=800, height=400, background_color='white', stopwords=STOPWORDS).generate(text_data)
+            
+            # --- UPDATED: Now uses 'custom_stopwords' ---
+            wordcloud = WordCloud(width=800, height=400, background_color='white', stopwords=custom_stopwords).generate(text_data)
             
             fig_wc, ax_wc = plt.subplots(figsize=(10, 5))
             ax_wc.imshow(wordcloud, interpolation='bilinear')
             ax_wc.axis("off")
             st.pyplot(fig_wc)
-            st.info("💡 **How to read this:** The larger and bolder a word appears in the cloud, the more frequently it was used in the group chat. Common filler words (like 'the', 'and', 'is') have been automatically removed.")
+            st.info("💡 **How to read this:** The larger and bolder a word appears in the cloud, the more frequently it was used in the group chat. Common filler words in both English and Malay have been automatically removed.")
 
             # 2. Top 5 Words Analysis Table
             st.markdown("---")
@@ -280,8 +337,8 @@ if uploaded_file is not None:
             all_text_lower = " ".join(df['Message'].astype(str)).lower()
             words = re.findall(r'\b\w+\b', all_text_lower)
             
-            # Remove stopwords and short words
-            filtered_words = [w for w in words if w not in STOPWORDS and len(w) > 2]
+            # --- UPDATED: Now filters out 'custom_stopwords' ---
+            filtered_words = [w for w in words if w not in custom_stopwords and len(w) > 2]
             
             if filtered_words:
                 top_5_words = Counter(filtered_words).most_common(5)
@@ -302,7 +359,6 @@ if uploaded_file is not None:
                 
                 df_top_words = pd.DataFrame(word_usage_list)
                 
-                # --- FIX: Start Index at 1 ---
                 df_top_words.index = df_top_words.index + 1
                 
                 st.table(df_top_words)
@@ -336,7 +392,7 @@ if uploaded_file is not None:
             stats_df.reset_index(drop=True, inplace=True) # Reset index after sorting
             stats_df.index = stats_df.index + 1           # Add 1 to start from 1
             
-            st.dataframe(stats_df, use_container_width=True)
+            st.dataframe(stats_df, width="stretch")
 
         # === CHOICE 3: TEMPORAL ANALYSIS ===
         with tab3:
@@ -359,7 +415,7 @@ if uploaded_file is not None:
                 day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                 day_counts = df['DayOfWeek'].value_counts().reindex(day_order)
                 fig_day, ax_day = plt.subplots()
-                sns.barplot(x=day_counts.index, y=day_counts.values, ax=ax_day, palette="Blues_d")
+                sns.barplot(x=day_counts.index, y=day_counts.values, ax=ax_day, hue=day_counts.index, palette="Blues_d", legend=False)
                 plt.xticks(rotation=45)
                 st.pyplot(fig_day)
                 st.info("💡 **Insight:** This chart displays the total number of messages sent on each specific day of the week, revealing which days the group is most communicative.")
@@ -484,7 +540,7 @@ if uploaded_file is not None:
             )
 
             # Display in Streamlit
-            st.plotly_chart(fig_sent_line, use_container_width=True)
+            st.plotly_chart(fig_sent_line, width="stretch")
             # --- PASTE THIS EXPLANATION BOX CODE HERE ---
             st.info(
             "💡 **Understanding Sentiment Scores:**\n\n"
