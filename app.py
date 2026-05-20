@@ -19,7 +19,7 @@ except LookupError:
 # --- CUSTOM STOPWORDS CONFIGURATION ---
 # Combine default English stopwords with the custom Malay stopwords
 malay_stopwords_list = [
-    "nak", "buat", "mai", "kat", "yg", "p", "dh", "nk", "dgn", "depa", "pi", "lagi", "mcm", "dia", "kau", "kan", "je", 
+    "nak", "buat", "mai", "kat", "yg", "p", "dh", "nk", "dgn", "depa", "pi", "lagi", "mcm", "dia", "kau", "kan", "je", "duk", "dok",  
     "kut", "tu", "pun", "pon", "X", "x", "tok", "Hg", "hg", "kena", "ya", "la", "ni", "ja", "aku", "tak", "dah", "dak", "dia",
     "abdul", "abdullah", "acara", "ada", "adalah", "ahmad", "air", "akan", "akhbar", "akhir",
     "aktiviti", "alam", "amat", "amerika", "anak", "anggota", "antara", "antarabangsa", "apa", "apabila",
