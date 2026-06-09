@@ -1,0 +1,15 @@
+name: Keep Streamlit App Awake
+
+on:
+  schedule:
+    # This runs the script every 4 hours
+    - cron: "0 */4 * * *" 
+  workflow_dispatch: # This allows you to manually trigger it just in case
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the Streamlit URL
+        # Replace the URL below with your actual Streamlit app link
+        run: curl -s https://soma-project-coghysqw5enbjzqqlddz6m.streamlit.app/ > /dev/null
