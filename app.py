@@ -19,9 +19,10 @@ except LookupError:
 # --- CUSTOM STOPWORDS CONFIGURATION ---
 # Combine default English stopwords with the custom Malay stopwords
 malay_stopwords_list = [
-    "nak", "buat", "mai", "kat", "yg", "p", "dh", "nk", "dgn", "depa", "pi", "lagi", "mcm", "dia", "kau", "kan", "je", "duk", "dok",  
-    "kut", "tu", "pun", "pon", "X", "x", "tok", "Hg", "hg", "kena", "ya", "la", "ni", "ja", "aku", "tak", "dah", "dak", "dia",
-    "abdul", "abdullah", "acara", "ada", "adalah", "ahmad", "air", "akan", "akhbar", "akhir",
+    "nak", "buat", "mai", "kat", "yg", "p", "dh", "nk", "dgn","haha", "hahahahaha", "hang", "tapi","kalau","hahahahahaha", "depa", "pi", "lagi", 
+    "mcm", "dia", "kau", "kan", "je", "duk", "dok", "https", 
+    "kut", "tu", "pun", "pon", "X", "x", "tok", "Hg", "hg", "kena", "ya", "la", "ni", "ja", "aku", "tak", "dah", "dak", "dia", "org", "aq",
+    "abdul", "abdullah", "acara", "ada", "adalah", "ahmad", "air", "akan", "akhbar", "akhir", "laa", "hampa", "ampa",
     "aktiviti", "alam", "amat", "amerika", "anak", "anggota", "antara", "antarabangsa", "apa", "apabila",
     "april", "as", "asas", "asean", "asia", "asing", "atas", "atau", "australia", "awal",
     "awam", "bagaimanapun", "bagi", "bahagian", "bahan", "baharu", "bahawa", "baik", "bandar", "bank",
@@ -306,8 +307,9 @@ if uploaded_file is not None:
                 st.info("💡 **Insight:** This pie chart breaks down the percentage share of messages sent by these top contributors relative to each other.")
             
             st.subheader("Daily Message Trend")
-            daily_counts = df.groupby(df['DateTime'].dt.date).size()
-            st.line_chart(daily_counts)
+            daily_counts_df = df.groupby(df['DateTime'].dt.date).size().reset_index(name='Message Count')
+            daily_counts_df.index = daily_counts_df.index + 1
+            st.line_chart(daily_counts_df, x='DateTime', y='Message Count')
             st.info("💡 **Insight:** This line chart visualizes the daily message trend throughout the whole timeline of the group chat. It allows you to easily observe the overall activity lifespan, spotting periods of high engagement, quiet phases, or sudden spikes in conversation driven by specific events or discussions.")
 
         # === CHOICE 2: CONTENT ANALYSIS ===
@@ -402,10 +404,19 @@ if uploaded_file is not None:
             
             with col_t1:
                 st.subheader("Activity by Hour of Day")
+    
+                # Keep the original series untouched for calculations
                 hourly_counts = df['Hour'].value_counts().sort_index()
-                st.bar_chart(hourly_counts)
-                
-                # Identify Peak Hour
+    
+                # Create a display copy to fix the index and column names
+                hourly_counts_df = hourly_counts.reset_index()
+                hourly_counts_df.columns = ['Hour', 'Number of Messages']
+                hourly_counts_df.index = hourly_counts_df.index + 1
+    
+                # Plot using the display copy
+                st.bar_chart(hourly_counts_df, x='Hour', y='Number of Messages')
+    
+                # Identify Peak Hour (Using original data so it doesn't break!)
                 peak_hour = hourly_counts.idxmax()
                 st.metric(label="Peak Activity Hour", value=f"{peak_hour}:00")
                 st.info("💡 **Insight:** This chart shows the total volume of messages sent during each hour of the day (in 24-hour format). It helps identify the group's general active hours and quiet hours.")
@@ -441,13 +452,19 @@ if uploaded_file is not None:
             # --- PASTE THIS NEW LINE GRAPH CODE HERE ---
             st.markdown("---")
             st.subheader("Hourly Activity Trajectory by Day")
-            
-            # Transpose (.T) the heatmap_data so Hours become the X-axis 
-            # and Days become the different colored lines
-            line_chart_data = heatmap_data.T
-            
-            # Use Streamlit's native line chart for interactive hovering
-            st.line_chart(line_chart_data)
+
+            # Transpose the heatmap_data so Hours become the X-axis
+            line_chart_data = heatmap_data.T.reset_index()
+
+            # Melt the data explicitly to prevent Streamlit from generating ugly column names
+            clean_line_df = line_chart_data.melt(id_vars='Hour', var_name='Day', value_name='Number of Messages')
+
+            # Shift index so the table starts at 1
+            clean_line_df.index = clean_line_df.index + 1
+
+            # Explicitly tell Streamlit exactly what columns to use for X, Y, and the Colors
+            st.line_chart(clean_line_df, x='Hour', y='Number of Messages', color='Day')
+            # ---------------------------------------------
             # ---------------------------------------------
             # --- PASTE THIS NEW PEAK FINDER CODE HERE ---
             st.markdown("---")
@@ -556,10 +573,19 @@ if uploaded_file is not None:
             # 3. Who is the most Positive/Negative person?
             st.markdown("---")
             st.subheader("User Positivity Ranking")
-            
+
+            # Keep original series untouched for calculations
             user_sentiment = df.groupby('Sender')['Sentiment_Score'].mean().sort_values(ascending=False)
-            
-            st.bar_chart(user_sentiment)
+
+            # Create a display copy to fix the index and column names
+            user_sentiment_df = user_sentiment.reset_index()
+            user_sentiment_df.columns = ['User', 'Average Sentiment Score']
+            user_sentiment_df.index = user_sentiment_df.index + 1
+
+            # Plot using the display copy
+            st.bar_chart(user_sentiment_df, x='User', y='Average Sentiment Score')
+
+            # Output the winners using the original unmodified data!
             st.write(f"🏆 **Most Positive User:** {user_sentiment.idxmax()}")
             st.write(f"🌩️ **Most Critical User:** {user_sentiment.idxmin()}")
         
